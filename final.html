@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生肖专属唐卡壁纸生成</title>
+    <style>
+        :root {
+            --tibetan-red: #590b0b;    
+            --dark-red: #2b0505;       
+            --gold-bright: #e5c158;    
+            --gold-dark: #aa8633;      
+            --text-light: #f4ebd8;     
+            --bg-deep: #0a0a0a;        
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'STHeiti', 'Microsoft YaHei', serif;
+            background: radial-gradient(circle at center 20%, var(--dark-red) 0%, var(--bg-deep) 80%);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            animation: fadeIn 2s ease-in-out;
+            width: 100%;
+        }
+        .ornament {
+            color: var(--gold-dark);
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(229, 193, 88, 0.3);
+        }
+        h1 {
+            color: var(--gold-bright);
+            font-size: 1.7rem;
+            margin: 0 0 15px 0;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 15px rgba(229, 193, 88, 0.5);
+        }
+
+        .mantra {
+            font-size: 1.6rem;
+            color: var(--gold-dark);
+            word-spacing: 15px; 
+            margin-bottom: 15px;
+            font-weight: normal;
+            animation: mantraPulse 4s infinite alternate ease-in-out;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #a0937d;
+            letter-spacing: 2px;
+            border-top: 1px solid rgba(170, 134, 51, 0.3);
+            border-bottom: 1px solid rgba(170, 134, 51, 0.3);
+            display: inline-block;
+            padding: 5px 15px;
+        }
+
+        .control-panel {
+            background: linear-gradient(145deg, rgba(20,20,20,0.9), rgba(10,10,10,0.9));
+            padding: 25px;
+            border-radius: 4px; 
+            border: 1px solid var(--gold-dark);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 10px rgba(170, 134, 51, 0.1);
+            width: 100%;
+            max-width: 360px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10; 
+        }
+        .control-panel::before, .control-panel::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border: 1px solid var(--gold-bright);
+        }
+        .control-panel::before { top: 4px; left: 4px; border-right: none; border-bottom: none; }
+        .control-panel::after { bottom: 4px; right: 4px; border-left: none; border-top: none; }
+
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+        .custom-select-trigger {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-bright);
+            padding: 14px 15px;
+            font-size: 1.05rem;
+            text-align: center;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .custom-select-trigger:hover {
+            background: rgba(43, 5, 5, 0.5);
+            box-shadow: 0 0 10px rgba(170, 134, 51, 0.2);
+        }
+        .custom-select-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: var(--gold-dark);
+            transition: transform 0.3s;
+        }
+        .custom-select-wrapper.open .custom-select-trigger::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        
+        .custom-options {
+            position: absolute;
+            display: none;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.98);
+            border: 1px solid var(--gold-dark);
+            border-top: none;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 99;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+        }
+        .custom-select-wrapper.open .custom-options {
+            display: block;
+            animation: fadeIn 0.2s ease-in;
+        }
+        .custom-option {
+            padding: 12px 15px;
+            color: #d4cfc5;
+            text-align: center;
+            border-bottom: 1px dashed rgba(170, 134, 51, 0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+        .custom-option:last-child {
+            border-bottom: none;
+        }
+        .custom-option:hover, .custom-option.selected {
+            background: linear-gradient(90deg, transparent, var(--tibetan-red), transparent);
+            color: var(--gold-bright);
+            text-shadow: 0 0 5px var(--gold-bright);
+        }
+        
+        .custom-options::-webkit-scrollbar { width: 4px; }
+        .custom-options::-webkit-scrollbar-track { background: #000; }
+        .custom-options::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+
+        button.main-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--text-light);
+            background: linear-gradient(to bottom, var(--tibetan-red), #360606);
+            border: 1px solid var(--gold-bright);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            animation: glowPulse 3s infinite alternate;
+        }
+        button.main-btn:hover {
+            background: linear-gradient(to bottom, #721111, var(--tibetan-red));
+            transform: scale(1.02);
+        }
+        /* 新增：按钮禁用状态（迎请中）的样式 */
+        button.main-btn:disabled {
+            background: #333;
+            border-color: #555;
+            color: #777;
+            cursor: not-allowed;
+            animation: none;
+            box-shadow: none;
+        }
+
+        .image-container {
+            margin-top: 35px;
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 9/16;
+            background: #000;
+            border: 3px double var(--gold-bright);
+            box-shadow: 0 0 30px rgba(229, 193, 88, 0.15);
+            display: none; /* 初始隐藏 */
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.05) saturate(1.1); 
+        }
+
+        .description-box {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 360px;
+            background: linear-gradient(180deg, rgba(20,20,20,0.95) 0%, rgba(5,5,5,0.95) 100%);
+            border-top: 2px solid var(--gold-dark);
+            border-bottom: 1px solid var(--gold-dark);
+            padding: 20px;
+            box-sizing: border-box;
+            display: none; /* 初始隐藏 */
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        .description-box::after {
+            content: 'ཨོཾ་ མ་ ཎི་ པདྨེ་ ཧཱུྃ';
+            position: absolute;
+            bottom: -15px;
+            right: 10px;
+            font-size: 3rem;
+            color: rgba(170, 134, 51, 0.05); 
+            pointer-events: none;
+            letter-spacing: 5px;
+        }
+        .description-box h3 {
+            margin: 0 0 15px 0;
+            color: var(--gold-bright);
+            font-size: 1.3rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(229, 193, 88, 0.4);
+        }
+        .description-box h3::before { content: '༄ '; color: var(--gold-dark); font-size: 1rem;}
+        .description-box h3::after { content: ' ༄'; color: var(--gold-dark); font-size: 1rem;}
+        .description-box p {
+            margin: 0 0 12px 0;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #d4cfc5;
+            text-align: justify;
+            position: relative;
+            z-index: 1; 
+        }
+        .description-box p strong {
+            color: var(--gold-bright);
+            font-weight: normal;
+        }
+
+        .actions {
+            margin-top: 20px;
+            text-align: center;
+            display: none; /* 初始隐藏 */
+        }
+        .actions p {
+            color: var(--gold-dark);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        /* 动画类 */
+        .fade-in-up {
+            animation: fadeUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 5px rgba(229, 193, 88, 0.2); }
+            100% { box-shadow: 0 0 20px rgba(229, 193, 88, 0.6); }
+        }
+        @keyframes mantraPulse {
+            0% { opacity: 0.6; text-shadow: 0 0 8px rgba(170, 134, 51, 0.2); transform: scale(0.98); }
+            100% { opacity: 1; text-shadow: 0 0 20px rgba(229, 193, 88, 0.8); transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="ornament">༄ ཨོཾ ༄</div>
+        <h1>结缘·专属本命佛</h1>
+        <div class="mantra">ཨོཾ་ མ་ ཎི་ པདྨེ་ ཧཱུྃ</div>
+        <div class="subtitle">输入生肖 · 迎请唐卡护身壁纸</div>
+    </div>
+
+    <div class="control-panel">
+        <div class="custom-select-wrapper" id="customSelect">
+            <div class="custom-select-trigger" id="selectTrigger">— 请选择您的生肖 —</div>
+            <div class="custom-options">
+                <div class="custom-option" data-value="鼠">子 鼠 · 千手观音</div>
+                <div class="custom-option" data-value="牛">丑 牛 · 虚空藏菩萨</div>
+                <div class="custom-option" data-value="虎">寅 虎 · 虚空藏菩萨</div>
+                <div class="custom-option" data-value="兔">卯 兔 · 文殊菩萨</div>
+                <div class="custom-option" data-value="龙">辰 龙 · 普贤菩萨</div>
+                <div class="custom-option" data-value="蛇">巳 蛇 · 普贤菩萨</div>
+                <div class="custom-option" data-value="马">午 马 · 大势至菩萨</div>
+                <div class="custom-option" data-value="羊">未 羊 · 大日如来</div>
+                <div class="custom-option" data-value="猴">申 猴 · 大日如来</div>
+                <div class="custom-option" data-value="鸡">酉 鸡 · 不动尊菩萨</div>
+                <div class="custom-option" data-value="狗">戌 狗 · 阿弥陀佛</div>
+                <div class="custom-option" data-value="猪">亥 猪 · 阿弥陀佛</div>
+            </div>
+        </div>
+        <input type="hidden" id="zodiacValue" value="">
+
+        <button class="main-btn" id="generateBtn" onclick="getOfflineThangka()">开启法缘</button>
+    </div>
+
+    <div class="image-container" id="imageContainer">
+        <img id="resultImage" src="" alt="唐卡壁纸">
+    </div>
+
+    <div class="description-box" id="deityDescription">
+        <h3 id="deityTitle">菩萨名称</h3>
+        <div id="deityText"></div>
+    </div>
+
+    <div class="actions" id="actionButtons">
+        <p>长按上方神像即可保存至手机</p>
+    </div>
+
+    <script>
+        // ================= 下拉菜单交互逻辑 =================
+        const selectWrapper = document.getElementById('customSelect');
+        const selectTrigger = document.getElementById('selectTrigger');
+        const options = document.querySelectorAll('.custom-option');
+        const hiddenInput = document.getElementById('zodiacValue');
+
+        selectTrigger.addEventListener('click', function() {
+            selectWrapper.classList.toggle('open');
+        });
+
+        for (const option of options) {
+            option.addEventListener('click', function() {
+                selectTrigger.textContent = this.textContent;
+                hiddenInput.value = this.getAttribute('data-value');
+                options.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectWrapper.classList.remove('open');
+            });
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!selectWrapper.contains(e.target)) {
+                selectWrapper.classList.remove('open');
+            }
+        });
+
+
+        // ================= 数据模块 =================
+        // ... (deityInfo 字典保持不变，节省篇幅此处省略，实际代码中请保留) ...
+        const deityInfo = {
+            '鼠': { name: '千手观音菩萨', description: '<p><strong>【造型特征】</strong>常呈现十一面千手千眼之相。主臂双手合十，其余手臂呈放射状，分别持法轮、净瓶、宝剑、莲花等法器，端坐于莲花宝座，面容大慈大悲。</p><p><strong>【庇护寓意】</strong>千手表示遍护众生，千眼表示遍观世间。敬奉能化解灾厄，护佑平安顺利。</p>' },
+            '牛': { name: '虚空藏菩萨', description: '<p><strong>【造型特征】</strong>头戴五佛冠，右手多持烈焰金刚剑，左手持莲花，莲花上有如意宝珠，神态庄严稳重。</p><p><strong>【庇护寓意】</strong>代表诚实与富有。敬奉可避开破财之灾，得八方贵人相助，财源广进。</p>' },
+            '虎': { name: '虚空藏菩萨', description: '<p><strong>【造型特征】</strong>头戴五佛冠，右手多持烈焰金刚剑，左手持莲花，莲花上有如意宝珠，神态庄严稳重。</p><p><strong>【庇护寓意】</strong>代表诚实与富有。敬奉可避开破财之灾，得八方贵人相助，财源广进。</p>' },
+            '兔': { name: '文殊菩萨', description: '<p><strong>【造型特征】</strong>常乘骑威猛青狮，右手高举金刚宝剑斩断无明烦恼，左手持青莲花，花上置有《般若心经》宝卷。</p><p><strong>【庇护寓意】</strong>代表大智慧。敬奉能增长智力，学业有成，事业顺利，破除一切烦恼。</p>' },
+            '龙': { name: '普贤菩萨', description: '<p><strong>【造型特征】</strong>身姿庄严，多乘骑六牙白象，手执如意或长茎莲花，面目圆满慈祥，展现大行大愿的沉稳姿态。</p><p><strong>【庇护寓意】</strong>代表理德和大行愿。敬奉能获菩萨护佑，灾邪远离，延年益寿。</p>' },
+            '蛇': { name: '普贤菩萨', description: '<p><strong>【造型特征】</strong>身姿庄严，多乘骑六牙白象，手执如意或长茎莲花，面目圆满慈祥，展现大行大愿的沉稳姿态。</p><p><strong>【庇护寓意】</strong>代表理德和大行愿. 敬奉能获菩萨护佑，灾邪远离，延年益寿。</p>' },
+            '马': { name: '大势至菩萨', description: '<p><strong>【造型特征】</strong>头顶宝冠中带有一个宝瓶，手持莲花或结印，周身散发璀璨的紫金光芒，威仪挺拔。</p><p><strong>【庇护寓意】</strong>以智慧之光遍照世间。敬奉能使您在人生道路上一帆风顺，化煞化凶，吉祥如意。</p>' },
+            '羊': { name: '大日如来', description: '<p><strong>【造型特征】</strong>常作菩萨国王相，头戴五智宝冠，双手结智拳印，背负大日圆光，端坐于八大狮子莲花座。</p><p><strong>【庇护寓意】</strong>是光明理智的象征。敬奉能开启智慧，除却烦恼，通达天地之灵气，成就宏图。</p>' },
+            '猴': { name: '大日如来', description: '<p><strong>【造型特征】</strong>常作菩萨国王相，头戴五智宝冠，双手结智拳印，背负大日圆光，端坐于八大狮子莲花座。</p><p><strong>【庇护寓意】</strong>是光明理智的象征。敬奉能开启智慧，除却烦恼，通达天地之灵气，成就宏图。</p>' },
+            '鸡': { name: '不动尊菩萨', description: '<p><strong>【造型特征】</strong>呈现威猛忿怒相，青黑色身，周身环绕烈焰。右手高举降魔剑，左手握紧绢索，威立于磐石之上。</p><p><strong>【庇护寓意】</strong>是理性的象征，誓愿斩断恶念。敬奉能把握机遇，扫除障碍，护佑家庭。</p>' },
+            '狗': { name: '阿弥陀佛', description: '<p><strong>【造型特征】</strong>常作比丘相，身穿红色袈裟，双手结禅定印托甘露钵。端坐于红莲花座上，目光慈祥，垂视众生。</p><p><strong>【庇护寓意】</strong>代表无量光、无量寿。敬奉能获无量智慧，摆脱烦恼，一生顺利平安。</p>' },
+            '猪': { name: '阿弥陀佛', description: '<p><strong>【造型特征】</strong>常作比丘相，身穿红色袈裟，双手结禅定印托甘露钵。端坐于红莲花座上，目光慈祥，垂视众生。</p><p><strong>【庇护寓意】</strong>代表无量光、无量寿。敬奉能获无量智慧，摆脱烦恼，一生顺利平安。</p>' }
+        };
+
+        // ... (thangkaDataStore 字典保持不变，使用您的 URL 链接) ...
+        const thangkaDataStore = {
+            '鼠': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E5%8D%83%E6%89%8B%E8%A7%82%E9%9F%B3.jpeg', 
+            '牛': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E8%99%9A%E7%A9%BA%E8%97%8F%E8%8F%A9%E8%90%A8.jpeg',
+            '虎': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E8%99%9A%E7%A9%BA%E8%97%8F%E8%8F%A9%E8%90%A8.jpeg',
+            '兔': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E6%96%87%E6%AE%8A%E8%8F%A9%E8%90%A8.jpeg',
+            '龙': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E6%99%AE%E8%B4%A4%E8%8F%A9%E8%90%A8.jpeg',
+            '蛇': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E6%99%AE%E8%B4%A4%E8%8F%A9%E8%90%A8.jpeg',
+            '马': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E5%A4%A7%E5%8A%BF%E8%87%B3.jpeg',
+            '羊': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E5%A4%A7%E6%97%A5%E5%A6%82%E6%9D%A5.jpeg',
+            '猴': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E5%A4%A7%E6%97%A5%E5%A6%82%E6%9D%A5.jpeg',
+            '鸡': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E4%B8%8D%E5%8A%A8%E6%98%8E%E7%8E%8B.jpeg',
+            '狗': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E9%98%BF%E5%BC%A5%E9%99%80%E4%BD%9B.jpeg',
+            '猪': 'https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/%E9%98%BF%E5%BC%A5%E9%99%80%E4%BD%9B.jpeg'
+        };
+
+
+        // ================= 核心业务逻辑 (已修复 GHOSTING 问题) =================
+        
+        // 预定义 HTML 元素
+        const imgContainer = document.getElementById('imageContainer');
+        const resultImage = document.getElementById('resultImage');
+        const descBox = document.getElementById('deityDescription');
+        const actionButtons = document.getElementById('actionButtons');
+        const generateBtn = document.getElementById('generateBtn');
+
+        function playClickSound() {
+            try {
+                // 
+                const audio = new Audio("https://tangka2-1417421897.cos.ap-beijing.myqcloud.com/637af6e9144e0345.mp3");
+                audio.play();
+            } catch (e) {
+                console.log("Audio play blocked by browser policy");
+            }
+        }
+        function getOfflineThangka() {
+            const zodiac = document.getElementById('zodiacValue').value;
+            
+            if (!zodiac) {
+                alert('请先选择您的生肖，结下法缘！');
+                return;
+            }
+
+            // 1. 播放点击音效
+            playClickSound();
+
+            // ============================================
+            // 2. [核心修复]：第一时间强制隐藏所有旧内容，清空旧图片
+            // ============================================
+            imgContainer.style.display = 'none';
+            descBox.style.display = 'none';
+            actionButtons.style.display = 'none';
+            // 彻底清空 src，防止浏览器在新图加载前“偷懒”显示旧图
+            resultImage.src = ''; 
+            
+            // 3. 移除动画类以便重新触发
+            imgContainer.classList.remove('fade-in-up');
+            descBox.classList.remove('fade-in-up');
+
+            // 4. 获取新数据
+            const targetImageUrl = thangkaDataStore[zodiac];
+            const info = deityInfo[zodiac];
+
+            // ============================================
+            // 5. [进阶优化]：使用 Image 对象在后台静默加载新图
+            // ============================================
+            
+            // 按钮反馈：提示用户正在“迎请”
+            generateBtn.disabled = true;
+            generateBtn.textContent = "迎请本尊中...";
+            
+            const tempImage = new Image();
+            tempImage.src = targetImageUrl; // 开始在后台下载图片
+
+            // 6. [关键回调]：只有当新图片“完全下载完毕”后，才执行显示逻辑
+            tempImage.onload = function() {
+                // a. 将真实 DOM 图片的 src 替换为已下载好的新图
+                resultImage.src = targetImageUrl;
+
+                // b. 更新文字内容
+                document.getElementById('deityTitle').innerText = `${zodiac}年守护本尊：${info.name}`;
+                document.getElementById('deityText').innerHTML = info.description; 
+
+                // c. [强制重绘]：确保动画从头开始
+                void imgContainer.offsetWidth; 
+
+                // d. 显示所有组件，并添加神圣的浮现动画
+                imgContainer.style.display = 'flex';
+                descBox.style.display = 'block';
+                actionButtons.style.display = 'block';
+                imgContainer.classList.add('fade-in-up');
+                descBox.classList.add('fade-in-up');
+
+                // e. 恢复按钮状态
+                generateBtn.disabled = false;
+                generateBtn.textContent = "开启法缘";
+            };
+
+            // 7. 处理加载失败的情况
+            tempImage.onerror = function() {
+                alert("迎请神像失败，请检查网络链接是否正确。");
+                generateBtn.disabled = false;
+                generateBtn.textContent = "再次尝试";
+            }
+        }
+    </script>
+</body>
+</html>
